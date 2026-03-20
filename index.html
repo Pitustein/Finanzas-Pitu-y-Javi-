@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanzas - Pitu y Javier</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #fef2f2; }
+        ::-webkit-scrollbar-thumb { background: #fca5a5; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
+        .tab-active { border-bottom: 3px solid #dc2626; color: #dc2626; font-weight: bold; }
+        .tab-inactive { border-bottom: 3px solid transparent; color: #6b7280; }
+    </style>
+</head>
+<body class="bg-red-50 text-gray-800 font-sans min-h-screen pb-16">
+
+    <!-- Header y Selector de Mes -->
+    <header class="bg-red-600 text-white shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl font-bold tracking-wide">Finanzas Pitu & Javi ❤️</h1>
+            </div>
+            <div class="flex items-center gap-2 bg-red-700 p-2 rounded-lg">
+                <label for="global-month" class="text-sm font-medium">Mes:</label>
+                <input type="month" id="global-month" class="bg-red-50 text-red-900 px-2 py-1 rounded outline-none text-sm cursor-pointer">
+            </div>
+        </div>
+        
+        <!-- Navegación de Pestañas -->
+        <div class="max-w-4xl mx-auto px-4 mt-2 flex bg-white rounded-t-xl overflow-hidden shadow-sm">
+            <button onclick="switchTab('registro')" id="tab-registro" class="flex-1 py-3 text-sm text-center transition-colors tab-active">Registro</button>
+            <button onclick="switchTab('checklist')" id="tab-checklist" class="flex-1 py-3 text-sm text-center transition-colors tab-inactive">Check Vencimientos</button>
+            <button onclick="switchTab('evolucion')" id="tab-evolucion" class="flex-1 py-3 text-sm text-center transition-colors tab-inactive">Evolución</button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 mt-6">
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA: REGISTRO (Ingresos y Gastos)      -->
+        <!-- ========================================== -->
+        <div id="view-registro" class="space-y-6 block">
+            
+            <!-- Resumen de Saldos de Cuentas (Histórico) -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-red-100 flex flex-col items-center text-center">
+                    <p class="text-xs text-gray-500 font-bold uppercase">Saldo Cuenta Pitu</p>
+                    <p id="saldo-pitu" class="text-xl font-bold text-gray-800 mt-1">$0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-red-100 flex flex-col items-center text-center">
+                    <p class="text-xs text-gray-500 font-bold uppercase">Saldo Cuenta Javi</p>
+                    <p id="saldo-javi" class="text-xl font-bold text-gray-800 mt-1">$0</p>
+                </div>
+                <div class="col-span-2 md:col-span-1 bg-red-600 rounded-xl p-4 shadow-md flex flex-col items-center text-center text-white">
+                    <p class="text-xs text-red-200 font-bold uppercase">Total Disponible</p>
+                    <p id="saldo-total" class="text-xl font-bold mt-1">$0</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Panel Ingresos -->
+                <section class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
+                    <h2 class="text-xl font-bold text-red-700 border-b pb-2 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Ingresar Dinero
+                    </h2>
+                    
+                    <form id="income-form" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Cuenta de Ingreso</label>
+                                <select id="inc-account" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" required>
+                                    <option value="Cuenta Pitu">Cuenta Pitu</option>
+                                    <option value="Cuenta Javi">Cuenta Javi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Fecha</label>
+                                <input type="date" id="inc-date" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Monto</label>
+                            <input type="number" id="inc-amount" step="0.01" min="0" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" placeholder="$0.00" required>
+                        </div>
+                        <button type="submit" class="w-full bg-green-50 text-green-700 font-semibold py-2 rounded-lg hover:bg-green-100 transition-colors border border-green-200">Guardar Ingreso</button>
+                    </form>
+
+                    <div class="mt-6">
+                        <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">Ingresos del Mes</h3>
+                        <ul id="income-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></ul>
+                    </div>
+                </section>
+
+                <!-- Panel Gastos -->
+                <section class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
+                    <h2 class="text-xl font-bold text-red-700 border-b pb-2 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                        Registrar Gasto
+                    </h2>
+                    
+                    <form id="expense-form" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Categoría</label>
+                                <select id="exp-category" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" required onchange="updateSubcategories()"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Subcategoría</label>
+                                <select id="exp-subcategory" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" required></select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Forma de Pago</label>
+                                <select id="exp-payment" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" required>
+                                    <option value="Cuenta Javi">Cuenta Javi</option>
+                                    <option value="Cuenta Pitu">Cuenta Pitu</option>
+                                    <option value="Tarjeta crédito Javi">Tarjeta crédito Javi</option>
+                                    <option value="Tarjeta crédito Pitu">Tarjeta crédito Pitu</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Fecha</label>
+                                <input type="date" id="exp-date" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-1">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Monto</label>
+                                <input type="number" id="exp-amount" step="0.01" min="0" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" placeholder="$0.00" required>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Detalle (Opcional)</label>
+                                <input type="text" id="exp-desc" class="w-full rounded-lg border-gray-300 border p-2 text-sm focus:ring-red-500 focus:border-red-500" placeholder="Ej: Compra Coto...">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm">Registrar Gasto</button>
+                    </form>
+
+                    <div class="mt-6">
+                        <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">Gastos del Mes</h3>
+                        <ul id="expense-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></ul>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA: CHECKLIST MENSUAL                 -->
+        <!-- ========================================== -->
+        <div id="view-checklist" class="hidden">
+            <section class="bg-white rounded-2xl p-6 shadow-sm border border-red-100 max-w-2xl mx-auto">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Vencimientos Fijos del Mes</h2>
+                    <p class="text-sm text-gray-500 mt-1">Marca lo que ya se pagó en este mes. Se guarda automáticamente.</p>
+                </div>
+                
+                <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                    <ul id="checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Generado por JS -->
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PESTAÑA: EVOLUCIÓN (Dashboard)             -->
+        <!-- ========================================== -->
+        <div id="view-evolucion" class="hidden space-y-6">
+            
+            <!-- KPIs (Tarjetas de resumen) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <p class="text-xs text-gray-500 font-bold uppercase">Ingresos Mes</p>
+                    <p id="dash-ingresos" class="text-xl font-bold text-green-600 mt-1">$0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <p class="text-xs text-gray-500 font-bold uppercase">Gastos Mes</p>
+                    <p id="dash-gastos" class="text-xl font-bold text-red-600 mt-1">$0</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <p class="text-xs text-gray-500 font-bold uppercase">Capacidad Ahorro</p>
+                    <p id="dash-ahorro" class="text-xl font-bold text-blue-600 mt-1">$0</p>
+                </div>
+                <div class="bg-red-600 rounded-xl p-4 shadow-md text-white">
+                    <p class="text-xs text-red-200 font-bold uppercase">% Ahorro</p>
+                    <p id="dash-tasa-ahorro" class="text-xl font-bold mt-1">0%</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Gráfico Torta -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 flex flex-col items-center">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 w-full border-b pb-2">Composición de Gastos</h3>
+                    <div class="w-full max-w-[250px] aspect-square relative">
+                        <canvas id="gastosChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Comparativa Mes Anterior -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Variación vs. Mes Anterior</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th class="px-2 py-2 rounded-l-lg">Categoría</th>
+                                    <th class="px-2 py-2">Este Mes</th>
+                                    <th class="px-2 py-2 text-right rounded-r-lg">Variación</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparison-table">
+                                <!-- Generado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-3 text-center">* En verde ahorraste, en rojo gastaste más.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal Notificación Corta -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg transform transition-transform translate-y-20 opacity-0 flex items-center gap-2 z-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toast-msg">Guardado</span>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // CONFIGURACIÓN DE FIREBASE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpjo1xrgeyPlajLEOqTIwdel0MXI1Pr2A",
+            authDomain: "finanzas-pitu-y-javi.firebaseapp.com",
+            projectId: "finanzas-pitu-y-javi",
+            storageBucket: "finanzas-pitu-y-javi.firebasestorage.app",
+            messagingSenderId: "752650167892",
+            appId: "1:752650167892:web:64f096311d9d4f31de2fc1",
+            measurementId: "G-ES1YNLTDYV"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // Un ID fijo para que tú y Javi compartan la misma "sala" de datos
+        const appId = 'familia-pitu-javi'; 
+        let userId = 'usuario-compartido'; 
+
+        // ==========================================
+        // ESTRUCTURA DE DATOS
+        // ==========================================
+        const CATEGORIAS_ESTRUCTURA = {
+            "Pago tarjetas": [
+                "Tarjeta Crédito Pitu", 
+                "Tarjeta Crédito Javi"
+            ],
+            "Gastos fijos": [
+                "Crédito hipotecario", "Colegio", "Expensas", "Sueldo Sofi", 
+                "Luz", "Agua", "Gas", "CISI", "Seguros", "Patente", "Jardinero"
+            ],
+            "Gastos variables": [
+                "Super/almacén", "Verdulería/carnicería", "Salidas con amigos/flia", 
+                "Regalos", "Peluquería/manos/depilación", "Delivery", 
+                "Gastos colegio", "Psicologa/medicos/dentista", "Farmacia/suplementos", "Gimnasio/deporte"
+            ]
+        };
+
+        const CHECKLIST_ITEMS = [
+            "Crédito hipotecario", "Tarjetas", "Expensas", "Luz", 
+            "Agua", "Gas", "Sueldo Sofi", "Colegios", "Patentes", "Cisi"
+        ];
+
+        // ==========================================
+        // ESTADO DE LA APLICACIÓN (Sincronizado con Firebase)
+        // ==========================================
+        let appData = { incomes: [], expenses: [], checklist: {} };
+
+        // Utilidades de formato
+        const formatCurrency = (amount) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount);
+        const formatMonthInput = (dateObj) => dateObj.toISOString().slice(0, 7);
+
+        // Variables Globales UI
+        const monthInput = document.getElementById('global-month');
+        let chartInstance = null;
+
+        // ==========================================
+        // AUTENTICACIÓN Y LISTENERS DE FIREBASE
+        // ==========================================
+        const initAuth = async () => {
+            try {
+                // Iniciamos sesión silenciosamente
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Error conectando a Firebase:", error);
+                
+                // Muestra un mensaje amigable indicando exactamente cuál es el problema.
+                if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
+                    alert("⚠️ ¡Falta un paso en Firebase!\n\nDebes ir a la consola de Firebase -> Menú Izquierdo: 'Authentication' -> Pestaña 'Sign-in method' (Método de acceso) -> Agregar nuevo proveedor -> Activar 'Anónimo' (Anonymous).");
+                } else {
+                    alert("Error de conexión a la base de datos: " + error.message);
+                }
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setupRealtimeListeners();
+            }
+        });
+
+        function setupRealtimeListeners() {
+            // Listener para Ingresos (usamos appId para que ambos vean lo mismo)
+            onSnapshot(collection(db, 'finanzas', appId, 'incomes'), (snapshot) => {
+                appData.incomes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                refreshAllViews();
+            }, (error) => console.error(error));
+
+            // Listener para Gastos
+            onSnapshot(collection(db, 'finanzas', appId, 'expenses'), (snapshot) => {
+                appData.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                refreshAllViews();
+            }, (error) => console.error(error));
+
+            // Listener para Checklist
+            onSnapshot(collection(db, 'finanzas', appId, 'checklist'), (snapshot) => {
+                appData.checklist = {};
+                snapshot.docs.forEach(doc => {
+                    appData.checklist[doc.id] = doc.data().items || [];
+                });
+                refreshAllViews();
+            }, (error) => console.error(error));
+        }
+
+        initAuth(); // Arrancar conexión
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        function initApp() {
+            // Setear mes actual por defecto
+            const today = new Date();
+            monthInput.value = formatMonthInput(today);
+            
+            document.getElementById('inc-date').value = today.toISOString().slice(0, 10);
+            document.getElementById('exp-date').value = today.toISOString().slice(0, 10);
+
+            // Poblar dropdown de categorías
+            const catSelect = document.getElementById('exp-category');
+            catSelect.innerHTML = '';
+            for (let cat in CATEGORIAS_ESTRUCTURA) {
+                catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+            }
+            window.updateSubcategories();
+
+            // Escuchar cambios de mes global
+            monthInput.addEventListener('change', refreshAllViews);
+
+            refreshAllViews();
+        }
+
+        // ==========================================
+        // LÓGICA DE INTERFAZ Y NAVEGACIÓN
+        // ==========================================
+        // Exponemos las funciones al objeto window porque al usar type="module" el scope es privado
+        window.switchTab = function(tabId) {
+            // Ocultar todos
+            ['registro', 'checklist', 'evolucion'].forEach(id => {
+                document.getElementById(`view-${id}`).classList.add('hidden');
+                document.getElementById(`tab-${id}`).className = "flex-1 py-3 text-sm text-center transition-colors tab-inactive cursor-pointer";
+            });
+            // Mostrar activo
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).className = "flex-1 py-3 text-sm text-center transition-colors tab-active cursor-pointer";
+            
+            if(tabId === 'evolucion') renderEvolucion();
+        }
+
+        function refreshAllViews() {
+            renderSaldos();
+            renderRegistroListas();
+            renderChecklist();
+            if(!document.getElementById('view-evolucion').classList.contains('hidden')) {
+                renderEvolucion();
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        // ==========================================
+        // PESTAÑA: REGISTRO
+        // ==========================================
+        function renderSaldos() {
+            let inPitu = 0, inJavi = 0;
+            appData.incomes.forEach(i => {
+                if(i.account === 'Cuenta Pitu') inPitu += i.amount;
+                if(i.account === 'Cuenta Javi') inJavi += i.amount;
+            });
+
+            let outPitu = 0, outJavi = 0;
+            appData.expenses.forEach(e => {
+                if(e.payment === 'Cuenta Pitu') outPitu += e.amount;
+                if(e.payment === 'Cuenta Javi') outJavi += e.amount;
+            });
+
+            const saldoPitu = inPitu - outPitu;
+            const saldoJavi = inJavi - outJavi;
+            const saldoTotal = saldoPitu + saldoJavi;
+
+            const elPitu = document.getElementById('saldo-pitu');
+            const elJavi = document.getElementById('saldo-javi');
+            
+            elPitu.innerText = formatCurrency(saldoPitu);
+            elPitu.className = `text-xl font-bold mt-1 ${saldoPitu < 0 ? 'text-red-500' : 'text-gray-800'}`;
+            
+            elJavi.innerText = formatCurrency(saldoJavi);
+            elJavi.className = `text-xl font-bold mt-1 ${saldoJavi < 0 ? 'text-red-500' : 'text-gray-800'}`;
+            
+            document.getElementById('saldo-total').innerText = formatCurrency(saldoTotal);
+        }
+
+        window.updateSubcategories = function() {
+            const catSelect = document.getElementById('exp-category');
+            const subSelect = document.getElementById('exp-subcategory');
+            const selectedCat = catSelect.value;
+            
+            subSelect.innerHTML = '';
+            CATEGORIAS_ESTRUCTURA[selectedCat].forEach(sub => {
+                subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+            });
+        }
+
+        // Manejar envío Ingresos
+        document.getElementById('income-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const account = document.getElementById('inc-account').value;
+            const amount = parseFloat(document.getElementById('inc-amount').value);
+            const date = document.getElementById('inc-date').value;
+
+            // Guardar en Firestore (en la colección compartida)
+            await addDoc(collection(db, 'finanzas', appId, 'incomes'), { account, amount, date });
+            
+            document.getElementById('income-form').reset();
+            document.getElementById('inc-date').value = date;
+            showToast('Ingreso guardado en la nube');
+        });
+
+        // Manejar envío Gastos
+        document.getElementById('expense-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const category = document.getElementById('exp-category').value;
+            const subcategory = document.getElementById('exp-subcategory').value;
+            const payment = document.getElementById('exp-payment').value;
+            const amount = parseFloat(document.getElementById('exp-amount').value);
+            const date = document.getElementById('exp-date').value;
+            const desc = document.getElementById('exp-desc').value;
+
+            // Guardar en Firestore
+            await addDoc(collection(db, 'finanzas', appId, 'expenses'), { category, subcategory, payment, amount, date, desc });
+            
+            document.getElementById('expense-form').reset();
+            window.updateSubcategories();
+            document.getElementById('exp-date').value = date;
+            showToast('Gasto guardado en la nube');
+        });
+
+        // Renderizar listas (Filtradas por mes actual)
+        function renderRegistroListas() {
+            const activeMonth = monthInput.value;
+            
+            const monthIncomes = appData.incomes.filter(i => i.date.startsWith(activeMonth)).reverse();
+            const monthExpenses = appData.expenses.filter(e => e.date.startsWith(activeMonth)).reverse();
+
+            const renderItems = (items, containerId, isIncome) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                if(items.length === 0) {
+                    container.innerHTML = `<li class="text-xs text-gray-400 py-2 text-center">Sin registros</li>`;
+                    return;
+                }
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
+                    
+                    if(isIncome) {
+                        li.innerHTML = `
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-gray-800">${item.account}</span>
+                                <span class="text-[10px] text-gray-500">${item.date}</span>
+                            </div>
+                            <span class="text-sm font-bold text-green-600">+${formatCurrency(item.amount)}</span>
+                            <button onclick="deleteItem('incomes', '${item.id}')" class="text-red-400 hover:text-red-600 ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                        `;
+                    } else {
+                        li.innerHTML = `
+                            <div class="flex flex-col flex-1">
+                                <span class="text-sm font-semibold text-gray-800">${item.subcategory}</span>
+                                <div class="flex gap-2 text-[10px] text-gray-500 mt-0.5">
+                                    <span class="bg-gray-200 px-1.5 rounded">${item.payment}</span>
+                                    <span>${item.desc || ''}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm font-bold text-red-600">-${formatCurrency(item.amount)}</span>
+                                <button onclick="deleteItem('expenses', '${item.id}')" class="text-red-400 hover:text-red-600 ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                            </div>
+                        `;
+                    }
+                    container.appendChild(li);
+                });
+            }
+
+            renderItems(monthIncomes, 'income-list', true);
+            renderItems(monthExpenses, 'expense-list', false);
+        }
+
+        // Eliminar registro
+        window.deleteItem = async function(type, id) {
+            if(confirm("¿Seguro que quieres borrar este registro?")) {
+                await deleteDoc(doc(db, 'finanzas', appId, type, id));
+                showToast('Registro borrado');
+            }
+        }
+
+        // ==========================================
+        // PESTAÑA: CHECKLIST
+        // ==========================================
+        function renderChecklist() {
+            const activeMonth = monthInput.value;
+            const container = document.getElementById('checklist-container');
+            container.innerHTML = '';
+
+            if(!appData.checklist[activeMonth]) {
+                appData.checklist[activeMonth] = [];
+            }
+            
+            const checkedItems = appData.checklist[activeMonth];
+
+            CHECKLIST_ITEMS.forEach(item => {
+                const isChecked = checkedItems.includes(item);
+                const li = document.createElement('li');
+                li.className = `flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${isChecked ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:bg-gray-50'}`;
+                
+                li.innerHTML = `
+                    <input type="checkbox" class="w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500 cursor-pointer pointer-events-none" ${isChecked ? 'checked' : ''}>
+                    <span class="ml-3 text-sm font-medium ${isChecked ? 'text-green-800 line-through' : 'text-gray-700'}">${item}</span>
+                `;
+                
+                li.onclick = () => window.toggleChecklist(item, activeMonth);
+                container.appendChild(li);
+            });
+        }
+
+        window.toggleChecklist = async function(item, month) {
+            if (!appData.checklist[month]) {
+                appData.checklist[month] = [];
+            }
+            
+            let list = appData.checklist[month];
+            let newList;
+            
+            if(list.includes(item)) {
+                newList = list.filter(i => i !== item);
+            } else {
+                newList = [...list, item];
+            }
+            
+            // Actualizar en Firestore
+            const monthRef = doc(db, 'finanzas', appId, 'checklist', month);
+            await setDoc(monthRef, { items: newList });
+        }
+
+        // ==========================================
+        // PESTAÑA: EVOLUCIÓN
+        // ==========================================
+        function renderEvolucion() {
+            const activeMonth = monthInput.value;
+            
+            let [y, m] = activeMonth.split('-');
+            let dateObj = new Date(y, m - 1, 1);
+            dateObj.setMonth(dateObj.getMonth() - 1);
+            const prevMonth = formatMonthInput(dateObj);
+
+            const mInc = appData.incomes.filter(i => i.date.startsWith(activeMonth));
+            const mExp = appData.expenses.filter(e => e.date.startsWith(activeMonth));
+            const pExp = appData.expenses.filter(e => e.date.startsWith(prevMonth));
+
+            const totalInc = mInc.reduce((acc, curr) => acc + curr.amount, 0);
+            const totalExp = mExp.reduce((acc, curr) => acc + curr.amount, 0);
+            const ahorro = totalInc - totalExp;
+            const tasaAhorro = totalInc > 0 ? ((ahorro / totalInc) * 100).toFixed(1) : 0;
+
+            document.getElementById('dash-ingresos').innerText = formatCurrency(totalInc);
+            document.getElementById('dash-gastos').innerText = formatCurrency(totalExp);
+            
+            const elAhorro = document.getElementById('dash-ahorro');
+            elAhorro.innerText = formatCurrency(ahorro);
+            elAhorro.className = `text-xl font-bold mt-1 ${ahorro >= 0 ? 'text-blue-600' : 'text-red-500'}`;
+            
+            document.getElementById('dash-tasa-ahorro').innerText = `${tasaAhorro}%`;
+
+            const catTotales = {"Pago tarjetas":0, "Gastos fijos":0, "Gastos variables":0};
+            mExp.forEach(e => {
+                if(catTotales[e.category] !== undefined) {
+                    catTotales[e.category] += e.amount
+                }
+            });
+
+            if(chartInstance) { chartInstance.destroy(); }
+            
+            const ctx = document.getElementById('gastosChart').getContext('2d');
+            
+            if(totalExp === 0) {
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: ['Sin Gastos'], datasets: [{ data: [1], backgroundColor: ['#f3f4f6'] }] },
+                    options: { plugins: { tooltip: { enabled: false } }, cutout: '70%' }
+                });
+            } else {
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(catTotales),
+                        datasets: [{
+                            data: Object.values(catTotales),
+                            backgroundColor: ['#f87171', '#3b82f6', '#fbbf24'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        cutout: '60%',
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 12, font: {size: 10} } }
+                        }
+                    }
+                });
+            }
+
+            const catTotalesPrev = {"Pago tarjetas":0, "Gastos fijos":0, "Gastos variables":0};
+            pExp.forEach(e => {
+                if(catTotalesPrev[e.category] !== undefined) {
+                    catTotalesPrev[e.category] += e.amount
+                }
+            });
+
+            const tbody = document.getElementById('comparison-table');
+            tbody.innerHTML = '';
+            
+            Object.keys(catTotales).forEach(cat => {
+                const act = catTotales[cat];
+                const prev = catTotalesPrev[cat];
+                const diff = act - prev;
+                
+                let percentText = "-";
+                let colorClass = "text-gray-500";
+                let arrow = "";
+
+                if(prev > 0) {
+                    const pct = Math.abs((diff / prev) * 100).toFixed(1);
+                    if(diff > 0) {
+                        percentText = `+${pct}%`;
+                        colorClass = "text-red-600";
+                        arrow = "↑";
+                    } else if (diff < 0) {
+                        percentText = `-${pct}%`;
+                        colorClass = "text-green-600";
+                        arrow = "↓";
+                    } else {
+                        percentText = "0%";
+                    }
+                } else if (act > 0 && prev === 0) {
+                    percentText = "Nuevo";
+                    colorClass = "text-red-600";
+                }
+
+                tbody.innerHTML += `
+                    <tr class="bg-white border-b">
+                        <td class="px-2 py-3 font-medium text-gray-900">${cat}</td>
+                        <td class="px-2 py-3 font-bold">${formatCurrency(act)}</td>
+                        <td class="px-2 py-3 text-right font-bold ${colorClass}">
+                            ${arrow} ${percentText}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
