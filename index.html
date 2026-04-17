@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -17,7 +17,6 @@
 </head>
 <body class="bg-red-50 text-gray-800 font-sans min-h-screen pb-16">
 
-    <!-- Header y Selector de Mes -->
     <header class="bg-red-600 text-white shadow-md">
         <div class="max-w-4xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="text-center md:text-left">
@@ -29,7 +28,6 @@
             </div>
         </div>
         
-        <!-- Navegación de Pestañas -->
         <div class="max-w-4xl mx-auto px-4 mt-2 flex bg-white rounded-t-xl overflow-hidden shadow-sm">
             <button onclick="switchTab('registro')" id="tab-registro" class="flex-1 py-3 text-sm text-center transition-colors tab-active">Registro</button>
             <button onclick="switchTab('checklist')" id="tab-checklist" class="flex-1 py-3 text-sm text-center transition-colors tab-inactive">Check Vencimientos</button>
@@ -39,12 +37,8 @@
 
     <main class="max-w-4xl mx-auto px-4 mt-6">
 
-        <!-- ========================================== -->
-        <!-- PESTAÑA: REGISTRO (Ingresos y Gastos)      -->
-        <!-- ========================================== -->
         <div id="view-registro" class="space-y-6 block">
             
-            <!-- Resumen de Saldos de Cuentas (Histórico) -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-red-100 flex flex-col items-center text-center">
                     <p class="text-xs text-gray-500 font-bold uppercase">Saldo Cuenta Pitu</p>
@@ -61,7 +55,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Panel Ingresos -->
                 <section class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
                     <h2 class="text-xl font-bold text-red-700 border-b pb-2 mb-4 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
@@ -95,7 +88,6 @@
                     </div>
                 </section>
 
-                <!-- Panel Gastos -->
                 <section class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
                     <h2 class="text-xl font-bold text-red-700 border-b pb-2 mb-4 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
@@ -149,9 +141,6 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- PESTAÑA: CHECKLIST MENSUAL                 -->
-        <!-- ========================================== -->
         <div id="view-checklist" class="hidden">
             <section class="bg-white rounded-2xl p-6 shadow-sm border border-red-100 max-w-2xl mx-auto">
                 <div class="text-center mb-6">
@@ -161,18 +150,13 @@
                 
                 <div class="bg-red-50 p-4 rounded-xl border border-red-100">
                     <ul id="checklist-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Generado por JS -->
-                    </ul>
+                        </ul>
                 </div>
             </section>
         </div>
 
-        <!-- ========================================== -->
-        <!-- PESTAÑA: EVOLUCIÓN (Dashboard)             -->
-        <!-- ========================================== -->
         <div id="view-evolucion" class="hidden space-y-6">
             
-            <!-- KPIs (Tarjetas de resumen) -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <p class="text-xs text-gray-500 font-bold uppercase">Ingresos Mes</p>
@@ -193,7 +177,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Gráfico Torta -->
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 flex flex-col items-center">
                     <h3 class="text-sm font-bold text-gray-700 mb-4 w-full border-b pb-2">Composición de Gastos</h3>
                     <div class="w-full max-w-[250px] aspect-square relative">
@@ -201,21 +184,19 @@
                     </div>
                 </div>
 
-                <!-- Comparativa Mes Anterior -->
                 <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
                     <h3 class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Variación vs. Mes Anterior</h3>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto max-h-80 overflow-y-auto">
                         <table class="w-full text-sm text-left text-gray-500">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
                                 <tr>
-                                    <th class="px-2 py-2 rounded-l-lg">Categoría</th>
+                                    <th class="px-2 py-2 rounded-l-lg">Detalle</th>
                                     <th class="px-2 py-2">Este Mes</th>
                                     <th class="px-2 py-2 text-right rounded-r-lg">Variación</th>
                                 </tr>
                             </thead>
                             <tbody id="comparison-table">
-                                <!-- Generado por JS -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                     <p class="text-[10px] text-gray-400 mt-3 text-center">* En verde ahorraste, en rojo gastaste más.</p>
@@ -225,7 +206,6 @@
         </div>
     </main>
 
-    <!-- Modal Notificación Corta -->
     <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg transform transition-transform translate-y-20 opacity-0 flex items-center gap-2 z-50">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
         <span id="toast-msg">Guardado</span>
@@ -261,18 +241,16 @@
         // ESTRUCTURA DE DATOS
         // ==========================================
         const CATEGORIAS_ESTRUCTURA = {
-            "Pago tarjetas": [
-                "Tarjeta Crédito Pitu", 
-                "Tarjeta Crédito Javi"
-            ],
             "Gastos fijos": [
                 "Crédito hipotecario", "Colegio", "Expensas", "Sueldo Sofi", 
-                "Luz", "Agua", "Gas", "CISI", "Seguros", "Patente", "Jardinero"
+                "Luz", "Agua", "Gas", "CISI", "Seguros", "Patente", "Jardinero",
+                "Suscripciones (Disney/Netflix/Google, Microsoft)"
             ],
             "Gastos variables": [
                 "Super/almacén", "Verdulería/carnicería", "Salidas con amigos/flia", 
                 "Regalos", "Peluquería/manos/depilación", "Delivery", 
-                "Gastos colegio", "Psicologa/medicos/dentista", "Farmacia/suplementos", "Gimnasio/deporte"
+                "Gastos colegio", "Psicologa/medicos/dentista", "Farmacia/suplementos", "Gimnasio/deporte",
+                "Nafta", "Transporte/Taxis/Uber", "Otros"
             ]
         };
 
@@ -616,7 +594,8 @@
             
             document.getElementById('dash-tasa-ahorro').innerText = `${tasaAhorro}%`;
 
-            const catTotales = {"Pago tarjetas":0, "Gastos fijos":0, "Gastos variables":0};
+            // Gráfico: Solo Categorías Principales
+            const catTotales = {"Gastos fijos":0, "Gastos variables":0};
             mExp.forEach(e => {
                 if(catTotales[e.category] !== undefined) {
                     catTotales[e.category] += e.amount
@@ -654,53 +633,90 @@
                 });
             }
 
-            const catTotalesPrev = {"Pago tarjetas":0, "Gastos fijos":0, "Gastos variables":0};
-            pExp.forEach(e => {
-                if(catTotalesPrev[e.category] !== undefined) {
-                    catTotalesPrev[e.category] += e.amount
-                }
-            });
-
+            // Comparativa: Categorías y Subcategorías
             const tbody = document.getElementById('comparison-table');
             tbody.innerHTML = '';
-            
-            Object.keys(catTotales).forEach(cat => {
-                const act = catTotales[cat];
-                const prev = catTotalesPrev[cat];
-                const diff = act - prev;
+
+            const categoriasPrincipales = ["Gastos fijos", "Gastos variables"];
+
+            categoriasPrincipales.forEach(cat => {
+                // Filtrar gastos por categoría para el mes actual y anterior
+                const expActCat = mExp.filter(e => e.category === cat);
+                const expPrevCat = pExp.filter(e => e.category === cat);
+
+                const totalActCat = expActCat.reduce((sum, e) => sum + e.amount, 0);
+                const totalPrevCat = expPrevCat.reduce((sum, e) => sum + e.amount, 0);
                 
-                let percentText = "-";
-                let colorClass = "text-gray-500";
-                let arrow = "";
+                // Mostrar Fila de Categoría Principal SIEMPRE que haya datos en este mes o el anterior
+                if (totalActCat > 0 || totalPrevCat > 0) {
+                     const rowHTML = generarFilaComparacion(cat, totalActCat, totalPrevCat, true);
+                     tbody.innerHTML += rowHTML;
 
-                if(prev > 0) {
-                    const pct = Math.abs((diff / prev) * 100).toFixed(1);
-                    if(diff > 0) {
-                        percentText = `+${pct}%`;
-                        colorClass = "text-red-600";
-                        arrow = "↑";
-                    } else if (diff < 0) {
-                        percentText = `-${pct}%`;
-                        colorClass = "text-green-600";
-                        arrow = "↓";
-                    } else {
-                        percentText = "0%";
-                    }
-                } else if (act > 0 && prev === 0) {
-                    percentText = "Nuevo";
-                    colorClass = "text-red-600";
+                     // Agrupar por subcategorías
+                     const subCatTotalesAct = {};
+                     const subCatTotalesPrev = {};
+
+                     CATEGORIAS_ESTRUCTURA[cat].forEach(sub => {
+                         subCatTotalesAct[sub] = 0;
+                         subCatTotalesPrev[sub] = 0;
+                     });
+
+                     expActCat.forEach(e => { if(subCatTotalesAct[e.subcategory] !== undefined) subCatTotalesAct[e.subcategory] += e.amount; });
+                     expPrevCat.forEach(e => { if(subCatTotalesPrev[e.subcategory] !== undefined) subCatTotalesPrev[e.subcategory] += e.amount; });
+
+                     // Mostrar Filas de Subcategorías
+                     CATEGORIAS_ESTRUCTURA[cat].forEach(sub => {
+                         const actSub = subCatTotalesAct[sub];
+                         const prevSub = subCatTotalesPrev[sub];
+
+                         // Solo mostrar si hay gastos en este mes o en el anterior
+                         if (actSub > 0 || prevSub > 0) {
+                             tbody.innerHTML += generarFilaComparacion(sub, actSub, prevSub, false);
+                         }
+                     });
                 }
-
-                tbody.innerHTML += `
-                    <tr class="bg-white border-b">
-                        <td class="px-2 py-3 font-medium text-gray-900">${cat}</td>
-                        <td class="px-2 py-3 font-bold">${formatCurrency(act)}</td>
-                        <td class="px-2 py-3 text-right font-bold ${colorClass}">
-                            ${arrow} ${percentText}
-                        </td>
-                    </tr>
-                `;
             });
+        }
+
+        // Función auxiliar para generar las filas de la tabla comparativa
+        function generarFilaComparacion(nombre, act, prev, esCategoriaPrincipal) {
+            const diff = act - prev;
+            let percentText = "-";
+            let colorClass = "text-gray-500";
+            let arrow = "";
+
+            if(prev > 0) {
+                const pct = Math.abs((diff / prev) * 100).toFixed(1);
+                if(diff > 0) {
+                    percentText = `+${pct}%`;
+                    colorClass = "text-red-600";
+                    arrow = "↑";
+                } else if (diff < 0) {
+                    percentText = `-${pct}%`;
+                    colorClass = "text-green-600";
+                    arrow = "↓";
+                } else {
+                    percentText = "0%";
+                }
+            } else if (act > 0 && prev === 0) {
+                percentText = "Nuevo";
+                colorClass = "text-red-600";
+            }
+
+            const bgColor = esCategoriaPrincipal ? 'bg-gray-100' : 'bg-white';
+            const paddingLeft = esCategoriaPrincipal ? 'px-2' : 'pl-6 pr-2';
+            const fontWeight = esCategoriaPrincipal ? 'font-bold text-gray-800' : 'font-normal text-gray-600';
+            const icon = esCategoriaPrincipal ? '▼ ' : '• ';
+
+            return `
+                <tr class="${bgColor} border-b">
+                    <td class="${paddingLeft} py-2 ${fontWeight} text-xs truncate max-w-[120px]" title="${nombre}">${icon}${nombre}</td>
+                    <td class="px-2 py-2 font-semibold text-xs">${formatCurrency(act)}</td>
+                    <td class="px-2 py-2 text-right font-bold text-xs ${colorClass}">
+                        ${arrow} ${percentText}
+                    </td>
+                </tr>
+            `;
         }
 
         window.onload = initApp;
