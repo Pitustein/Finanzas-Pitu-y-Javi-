@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -235,7 +235,8 @@
         
         // Un ID fijo para que tú y Javi compartan la misma "sala" de datos
         const appId = 'familia-pitu-javi'; 
-        let userId = 'usuario-compartido'; 
+        let currentUser = null;
+        let listenersSetup = false;
 
         // ==========================================
         // ESTRUCTURA DE DATOS
@@ -281,8 +282,6 @@
                 await signInAnonymously(auth);
             } catch (error) {
                 console.error("Error conectando a Firebase:", error);
-                
-                // Muestra un mensaje amigable indicando exactamente cuál es el problema.
                 if (error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
                     alert("⚠️ ¡Falta un paso en Firebase!\n\nDebes ir a la consola de Firebase -> Menú Izquierdo: 'Authentication' -> Pestaña 'Sign-in method' (Método de acceso) -> Agregar nuevo proveedor -> Activar 'Anónimo' (Anonymous).");
                 } else {
@@ -292,32 +291,34 @@
         };
 
         onAuthStateChanged(auth, (user) => {
+            currentUser = user;
             if (user) {
                 setupRealtimeListeners();
             }
         });
 
         function setupRealtimeListeners() {
-            // Listener para Ingresos (usamos appId para que ambos vean lo mismo)
-            onSnapshot(collection(db, 'finanzas', appId, 'incomes'), (snapshot) => {
+            if (listenersSetup) return;
+            listenersSetup = true;
+
+            // Ajustamos las rutas para evitar bloqueos por permisos estrictos en la BD y proxies
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'incomes'), (snapshot) => {
                 appData.incomes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 refreshAllViews();
-            }, (error) => console.error(error));
+            }, (error) => console.error("Error al leer ingresos:", error));
 
-            // Listener para Gastos
-            onSnapshot(collection(db, 'finanzas', appId, 'expenses'), (snapshot) => {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'expenses'), (snapshot) => {
                 appData.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 refreshAllViews();
-            }, (error) => console.error(error));
+            }, (error) => console.error("Error al leer gastos:", error));
 
-            // Listener para Checklist
-            onSnapshot(collection(db, 'finanzas', appId, 'checklist'), (snapshot) => {
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'checklist'), (snapshot) => {
                 appData.checklist = {};
                 snapshot.docs.forEach(doc => {
                     appData.checklist[doc.id] = doc.data().items || [];
                 });
                 refreshAllViews();
-            }, (error) => console.error(error));
+            }, (error) => console.error("Error al leer checklist:", error));
         }
 
         initAuth(); // Arrancar conexión
@@ -426,13 +427,14 @@
         // Manejar envío Ingresos
         document.getElementById('income-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!currentUser) { alert("Conectando a la base de datos... por favor, intenta de nuevo."); return; }
 
             const account = document.getElementById('inc-account').value;
             const amount = parseFloat(document.getElementById('inc-amount').value);
             const date = document.getElementById('inc-date').value;
 
-            // Guardar en Firestore (en la colección compartida)
-            await addDoc(collection(db, 'finanzas', appId, 'incomes'), { account, amount, date });
+            // Guardar en Firestore usando la nueva ruta
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'incomes'), { account, amount, date });
             
             document.getElementById('income-form').reset();
             document.getElementById('inc-date').value = date;
@@ -442,6 +444,7 @@
         // Manejar envío Gastos
         document.getElementById('expense-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!currentUser) { alert("Conectando a la base de datos... por favor, intenta de nuevo."); return; }
 
             const category = document.getElementById('exp-category').value;
             const subcategory = document.getElementById('exp-subcategory').value;
@@ -450,8 +453,8 @@
             const date = document.getElementById('exp-date').value;
             const desc = document.getElementById('exp-desc').value;
 
-            // Guardar en Firestore
-            await addDoc(collection(db, 'finanzas', appId, 'expenses'), { category, subcategory, payment, amount, date, desc });
+            // Guardar en Firestore usando la nueva ruta
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'expenses'), { category, subcategory, payment, amount, date, desc });
             
             document.getElementById('expense-form').reset();
             window.updateSubcategories();
@@ -511,8 +514,9 @@
 
         // Eliminar registro
         window.deleteItem = async function(type, id) {
+            if (!currentUser) return;
             if(confirm("¿Seguro que quieres borrar este registro?")) {
-                await deleteDoc(doc(db, 'finanzas', appId, type, id));
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', type, id));
                 showToast('Registro borrado');
             }
         }
@@ -547,6 +551,7 @@
         }
 
         window.toggleChecklist = async function(item, month) {
+            if (!currentUser) return;
             if (!appData.checklist[month]) {
                 appData.checklist[month] = [];
             }
@@ -561,7 +566,7 @@
             }
             
             // Actualizar en Firestore
-            const monthRef = doc(db, 'finanzas', appId, 'checklist', month);
+            const monthRef = doc(db, 'artifacts', appId, 'public', 'data', 'checklist', month);
             await setDoc(monthRef, { items: newList });
         }
 
