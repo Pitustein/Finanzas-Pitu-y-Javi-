@@ -301,18 +301,18 @@
             if (listenersSetup) return;
             listenersSetup = true;
 
-            // Ajustamos las rutas para evitar bloqueos por permisos estrictos en la BD y proxies
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'incomes'), (snapshot) => {
+            // Restablecemos las rutas a su origen ("finanzas") para recuperar toda tu data anterior
+            onSnapshot(collection(db, 'finanzas', appId, 'incomes'), (snapshot) => {
                 appData.incomes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 refreshAllViews();
             }, (error) => console.error("Error al leer ingresos:", error));
 
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'expenses'), (snapshot) => {
+            onSnapshot(collection(db, 'finanzas', appId, 'expenses'), (snapshot) => {
                 appData.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 refreshAllViews();
             }, (error) => console.error("Error al leer gastos:", error));
 
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'checklist'), (snapshot) => {
+            onSnapshot(collection(db, 'finanzas', appId, 'checklist'), (snapshot) => {
                 appData.checklist = {};
                 snapshot.docs.forEach(doc => {
                     appData.checklist[doc.id] = doc.data().items || [];
@@ -433,8 +433,8 @@
             const amount = parseFloat(document.getElementById('inc-amount').value);
             const date = document.getElementById('inc-date').value;
 
-            // Guardar en Firestore usando la nueva ruta
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'incomes'), { account, amount, date });
+            // Restablecemos las rutas a su origen ("finanzas")
+            await addDoc(collection(db, 'finanzas', appId, 'incomes'), { account, amount, date });
             
             document.getElementById('income-form').reset();
             document.getElementById('inc-date').value = date;
@@ -453,8 +453,8 @@
             const date = document.getElementById('exp-date').value;
             const desc = document.getElementById('exp-desc').value;
 
-            // Guardar en Firestore usando la nueva ruta
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'expenses'), { category, subcategory, payment, amount, date, desc });
+            // Restablecemos las rutas a su origen ("finanzas")
+            await addDoc(collection(db, 'finanzas', appId, 'expenses'), { category, subcategory, payment, amount, date, desc });
             
             document.getElementById('expense-form').reset();
             window.updateSubcategories();
@@ -516,7 +516,7 @@
         window.deleteItem = async function(type, id) {
             if (!currentUser) return;
             if(confirm("¿Seguro que quieres borrar este registro?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', type, id));
+                await deleteDoc(doc(db, 'finanzas', appId, type, id));
                 showToast('Registro borrado');
             }
         }
@@ -566,7 +566,7 @@
             }
             
             // Actualizar en Firestore
-            const monthRef = doc(db, 'artifacts', appId, 'public', 'data', 'checklist', month);
+            const monthRef = doc(db, 'finanzas', appId, 'checklist', month);
             await setDoc(monthRef, { items: newList });
         }
 
