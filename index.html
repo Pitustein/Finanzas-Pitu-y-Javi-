@@ -257,7 +257,8 @@
 
         const CHECKLIST_ITEMS = [
             "Crédito hipotecario", "Tarjetas", "Expensas", "Luz", 
-            "Agua", "Gas", "Sueldo Sofi", "Colegios", "Patentes", "Cisi"
+            "Agua", "Gas", "Sueldo Sofi", "Colegios", "Patentes", "Cisi",
+            "Seguro de incendio", "Seguro de Hogar"
         ];
 
         // ==========================================
@@ -433,8 +434,8 @@
             const amount = parseFloat(document.getElementById('inc-amount').value);
             const date = document.getElementById('inc-date').value;
 
-            // Restablecemos las rutas a su origen ("finanzas")
-            await addDoc(collection(db, 'finanzas', appId, 'incomes'), { account, amount, date });
+            // Restablecemos las rutas a su origen ("finanzas") y sumamos la marca de tiempo (createdAt)
+            await addDoc(collection(db, 'finanzas', appId, 'incomes'), { account, amount, date, createdAt: Date.now() });
             
             document.getElementById('income-form').reset();
             document.getElementById('inc-date').value = date;
@@ -453,8 +454,8 @@
             const date = document.getElementById('exp-date').value;
             const desc = document.getElementById('exp-desc').value;
 
-            // Restablecemos las rutas a su origen ("finanzas")
-            await addDoc(collection(db, 'finanzas', appId, 'expenses'), { category, subcategory, payment, amount, date, desc });
+            // Restablecemos las rutas a su origen ("finanzas") y sumamos la marca de tiempo (createdAt)
+            await addDoc(collection(db, 'finanzas', appId, 'expenses'), { category, subcategory, payment, amount, date, desc, createdAt: Date.now() });
             
             document.getElementById('expense-form').reset();
             window.updateSubcategories();
@@ -466,8 +467,14 @@
         function renderRegistroListas() {
             const activeMonth = monthInput.value;
             
-            const monthIncomes = appData.incomes.filter(i => i.date.startsWith(activeMonth)).reverse();
-            const monthExpenses = appData.expenses.filter(e => e.date.startsWith(activeMonth)).reverse();
+            // Ordenamos por fecha del gasto (de más reciente a más antiguo)
+            const monthIncomes = appData.incomes
+                .filter(i => i.date.startsWith(activeMonth))
+                .sort((a, b) => b.date.localeCompare(a.date));
+                
+            const monthExpenses = appData.expenses
+                .filter(e => e.date.startsWith(activeMonth))
+                .sort((a, b) => b.date.localeCompare(a.date));
 
             const renderItems = (items, containerId, isIncome) => {
                 const container = document.getElementById(containerId);
@@ -480,11 +487,15 @@
                     const li = document.createElement('li');
                     li.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
                     
+                    // Formateamos la fecha (DD/MM/YYYY)
+                    const [year, month, day] = item.date.split('-');
+                    const displayDate = `${day}/${month}/${year}`;
+                    
                     if(isIncome) {
                         li.innerHTML = `
                             <div class="flex flex-col">
                                 <span class="text-sm font-semibold text-gray-800">${item.account}</span>
-                                <span class="text-[10px] text-gray-500">${item.date}</span>
+                                <span class="text-[10px] text-gray-500">${displayDate}</span>
                             </div>
                             <span class="text-sm font-bold text-green-600">+${formatCurrency(item.amount)}</span>
                             <button onclick="deleteItem('incomes', '${item.id}')" class="text-red-400 hover:text-red-600 ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -493,8 +504,9 @@
                         li.innerHTML = `
                             <div class="flex flex-col flex-1">
                                 <span class="text-sm font-semibold text-gray-800">${item.subcategory}</span>
-                                <div class="flex gap-2 text-[10px] text-gray-500 mt-0.5">
+                                <div class="flex gap-2 text-[10px] text-gray-500 mt-0.5 items-center">
                                     <span class="bg-gray-200 px-1.5 rounded">${item.payment}</span>
+                                    <span class="font-medium text-gray-600 bg-gray-100 px-1.5 rounded border border-gray-200">${displayDate}</span>
                                     <span>${item.desc || ''}</span>
                                 </div>
                             </div>
