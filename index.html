@@ -29,9 +29,10 @@
         </div>
         
         <div class="max-w-4xl mx-auto px-4 mt-2 flex bg-white rounded-t-xl overflow-hidden shadow-sm">
-            <button onclick="switchTab('registro')" id="tab-registro" class="flex-1 py-3 text-sm text-center transition-colors tab-active">Registro</button>
-            <button onclick="switchTab('checklist')" id="tab-checklist" class="flex-1 py-3 text-sm text-center transition-colors tab-inactive">Check Vencimientos</button>
-            <button onclick="switchTab('evolucion')" id="tab-evolucion" class="flex-1 py-3 text-sm text-center transition-colors tab-inactive">Evolución</button>
+            <button onclick="switchTab('registro')" id="tab-registro" class="flex-1 py-3 text-sm text-center transition-colors tab-active px-1">Registro</button>
+            <button onclick="switchTab('checklist')" id="tab-checklist" class="flex-1 py-3 text-sm text-center transition-colors tab-inactive px-1">Vencimientos</button>
+            <button onclick="switchTab('evolucion')" id="tab-evolucion" class="flex-1 py-3 text-sm text-center transition-colors tab-inactive px-1">Evolución</button>
+            <button onclick="switchTab('comparativa')" id="tab-comparativa" class="flex-1 py-3 text-sm text-center transition-colors tab-inactive px-1">Javi vs Pitu</button>
         </div>
     </header>
 
@@ -204,6 +205,37 @@
             </div>
 
         </div>
+
+        <div id="view-comparativa" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-red-100 max-w-2xl mx-auto flex flex-col items-center">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">¿Quién pagó más este mes?</h2>
+                
+                <div class="flex justify-between w-full max-w-sm mb-8 px-4">
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500 font-bold uppercase">Pagó Pitu</p>
+                        <p id="comp-pitu" class="text-3xl font-bold text-pink-500 mt-1">$0</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500 font-bold uppercase">Pagó Javi</p>
+                        <p id="comp-javi" class="text-3xl font-bold text-blue-500 mt-1">$0</p>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-[250px] aspect-square relative">
+                    <canvas id="comparativaChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Nuevo bloque para el Cierre del Mes Anterior -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 max-w-2xl mx-auto text-center">
+                <h3 class="text-lg font-bold text-gray-700 mb-1">Cierre Mes Anterior</h3>
+                <p id="comp-prev-month-name" class="text-xs text-gray-500 uppercase font-semibold mb-4">-</p>
+                <div id="comp-prev-result" class="text-sm text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <!-- Contenido dinámico generado por JS -->
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <div id="toast" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg transform transition-transform translate-y-20 opacity-0 flex items-center gap-2 z-50">
@@ -245,13 +277,13 @@
             "Gastos fijos": [
                 "Crédito hipotecario", "Colegio", "Expensas", "Sueldo Sofi", 
                 "Luz", "Agua", "Gas", "CISI", "Seguros", "Patente", "Jardinero",
-                "Suscripciones (Disney/Netflix/Google, Microsoft)"
+                "Suscripciones (Disney/Netflix/Google, Microsoft)", "Crédito Auto PSA", "Sueldo empleada"
             ],
             "Gastos variables": [
                 "Super/almacén", "Verdulería/carnicería", "Salidas con amigos/flia", 
                 "Regalos", "Peluquería/manos/depilación", "Delivery", 
                 "Gastos colegio", "Psicologa/medicos/dentista", "Farmacia/suplementos", "Gimnasio/deporte",
-                "Nafta", "Transporte/Taxis/Uber", "Otros"
+                "Nafta", "Transporte/Taxis/Uber", "Otros", "Indumentaria", "Viajes"
             ]
         };
 
@@ -273,6 +305,7 @@
         // Variables Globales UI
         const monthInput = document.getElementById('global-month');
         let chartInstance = null;
+        let comparativaChartInstance = null;
 
         // ==========================================
         // AUTENTICACIÓN Y LISTENERS DE FIREBASE
@@ -355,15 +388,16 @@
         // Exponemos las funciones al objeto window porque al usar type="module" el scope es privado
         window.switchTab = function(tabId) {
             // Ocultar todos
-            ['registro', 'checklist', 'evolucion'].forEach(id => {
+            ['registro', 'checklist', 'evolucion', 'comparativa'].forEach(id => {
                 document.getElementById(`view-${id}`).classList.add('hidden');
-                document.getElementById(`tab-${id}`).className = "flex-1 py-3 text-sm text-center transition-colors tab-inactive cursor-pointer";
+                document.getElementById(`tab-${id}`).className = "flex-1 py-3 text-sm text-center transition-colors tab-inactive cursor-pointer px-1";
             });
             // Mostrar activo
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).className = "flex-1 py-3 text-sm text-center transition-colors tab-active cursor-pointer";
+            document.getElementById(`tab-${tabId}`).className = "flex-1 py-3 text-sm text-center transition-colors tab-active cursor-pointer px-1";
             
             if(tabId === 'evolucion') renderEvolucion();
+            if(tabId === 'comparativa') renderComparativa();
         }
 
         function refreshAllViews() {
@@ -372,6 +406,9 @@
             renderChecklist();
             if(!document.getElementById('view-evolucion').classList.contains('hidden')) {
                 renderEvolucion();
+            }
+            if(!document.getElementById('view-comparativa').classList.contains('hidden')) {
+                renderComparativa();
             }
         }
 
@@ -734,6 +771,101 @@
                     </td>
                 </tr>
             `;
+        }
+
+        // ==========================================
+        // PESTAÑA: COMPARATIVA JAVI VS PITU
+        // ==========================================
+        function renderComparativa() {
+            const activeMonth = monthInput.value;
+            const mExp = appData.expenses.filter(e => e.date.startsWith(activeMonth));
+
+            // --- Lógica del Mes Actual ---
+            let totalPitu = 0;
+            let totalJavi = 0;
+
+            mExp.forEach(e => {
+                if(e.payment && e.payment.includes('Pitu')) totalPitu += e.amount;
+                if(e.payment && e.payment.includes('Javi')) totalJavi += e.amount;
+            });
+
+            document.getElementById('comp-pitu').innerText = formatCurrency(totalPitu);
+            document.getElementById('comp-javi').innerText = formatCurrency(totalJavi);
+
+            if(comparativaChartInstance) { comparativaChartInstance.destroy(); }
+            
+            const ctx = document.getElementById('comparativaChart').getContext('2d');
+            
+            if(totalPitu === 0 && totalJavi === 0) {
+                comparativaChartInstance = new Chart(ctx, {
+                    type: 'pie',
+                    data: { labels: ['Sin Gastos'], datasets: [{ data: [1], backgroundColor: ['#f3f4f6'] }] },
+                    options: { plugins: { tooltip: { enabled: false } } }
+                });
+            } else {
+                comparativaChartInstance = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Pagó Pitu', 'Pagó Javi'],
+                        datasets: [{
+                            data: [totalPitu, totalJavi],
+                            backgroundColor: ['#ec4899', '#3b82f6'], // Rosa y Azul
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 15 } }
+                        }
+                    }
+                });
+            }
+
+            // --- Lógica del Mes Anterior (Cierre) ---
+            let [y, m] = activeMonth.split('-');
+            let dateObj = new Date(y, m - 1, 1);
+            dateObj.setMonth(dateObj.getMonth() - 1);
+            const prevMonth = formatMonthInput(dateObj);
+
+            const pExp = appData.expenses.filter(e => e.date.startsWith(prevMonth));
+            
+            let prevTotalPitu = 0;
+            let prevTotalJavi = 0;
+
+            pExp.forEach(e => {
+                if(e.payment && e.payment.includes('Pitu')) prevTotalPitu += e.amount;
+                if(e.payment && e.payment.includes('Javi')) prevTotalJavi += e.amount;
+            });
+
+            const [prevY, prevM] = prevMonth.split('-');
+            document.getElementById('comp-prev-month-name').innerText = `Período: ${prevM}/${prevY}`;
+
+            const resultDiv = document.getElementById('comp-prev-result');
+            if (prevTotalPitu === 0 && prevTotalJavi === 0) {
+                resultDiv.innerHTML = '<span class="text-gray-500">No hay registros del mes anterior.</span>';
+            } else {
+                const diff = Math.abs(prevTotalPitu - prevTotalJavi);
+                const formattedDiff = formatCurrency(diff);
+                
+                let message = '';
+                if (prevTotalPitu > prevTotalJavi) {
+                    message = `<strong>Pitu</strong> pagó <span class="text-pink-600 font-bold">${formattedDiff}</span> más que Javi.`;
+                } else if (prevTotalJavi > prevTotalPitu) {
+                    message = `<strong>Javi</strong> pagó <span class="text-blue-600 font-bold">${formattedDiff}</span> más que Pitu.`;
+                } else {
+                    message = `¡Empate! Ambos pagaron exactamente lo mismo.`;
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="flex justify-center gap-6 mb-3 text-xs text-gray-500">
+                        <span>Pitu: <b class="text-gray-800">${formatCurrency(prevTotalPitu)}</b></span>
+                        <span>Javi: <b class="text-gray-800">${formatCurrency(prevTotalJavi)}</b></span>
+                    </div>
+                    <p class="text-base">${message}</p>
+                `;
+            }
         }
 
         window.onload = initApp;
