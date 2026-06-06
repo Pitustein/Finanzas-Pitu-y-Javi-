@@ -239,6 +239,21 @@
                     <!-- Contenido dinámico generado por JS -->
                 </div>
             </div>
+
+            <!-- Nuevo bloque para Evolución Anual Javi vs Pitu -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 w-full overflow-hidden max-w-2xl mx-auto mt-6">
+                <h3 id="comp-anual-title" class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Evolución de Pagos Anual</h3>
+                <div class="overflow-x-auto max-h-[500px] overflow-y-auto relative w-full border border-gray-100 rounded-lg">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead id="comp-evolucion-thead" class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-20 shadow-sm">
+                            <!-- Generado por JS -->
+                        </thead>
+                        <tbody id="comp-evolucion-tbody">
+                            <!-- Generado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -877,6 +892,102 @@
                     <p class="text-base">${message}</p>
                 `;
             }
+
+            // --- EVOLUCIÓN HISTÓRICA ANUAL JAVI VS PITU ---
+            const year = activeMonth.split('-')[0];
+            const monthNum = parseInt(activeMonth.split('-')[1], 10);
+            const monthsNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+            document.getElementById('comp-anual-title').innerText = `Evolución de Pagos Anual ${year}`;
+
+            const cols = [];
+            for(let i = 1; i <= monthNum; i++) {
+                let mStr = i.toString().padStart(2, '0');
+                cols.push({ label: monthsNames[i-1], prefix: `${year}-${mStr}` });
+            }
+
+            let theadHTML = `<tr><th class="px-2 py-2 rounded-tl-lg sticky left-0 bg-gray-50 z-30 shadow-[1px_0_0_0_#eee]">Persona</th>`;
+            cols.forEach(c => {
+                theadHTML += `<th class="px-2 py-2 text-right min-w-[75px]">${c.label}</th>`;
+            });
+            theadHTML += `</tr>`;
+            document.getElementById('comp-evolucion-thead').innerHTML = theadHTML;
+
+            const tbody = document.getElementById('comp-evolucion-tbody');
+            tbody.innerHTML = '';
+
+            const expYear = appData.expenses.filter(e => e.date.startsWith(year) && parseInt(e.date.split('-')[1], 10) <= monthNum);
+
+            const personas = [
+                { nombre: 'Pitu', color: 'text-pink-500', match: 'Pitu' },
+                { nombre: 'Javi', color: 'text-blue-500', match: 'Javi' }
+            ];
+
+            personas.forEach(p => {
+                let html = `<tr class="bg-white border-b hover:bg-gray-50 transition-colors">
+                    <td class="px-2 py-2 font-bold ${p.color} text-xs sticky left-0 bg-white z-10 shadow-[1px_0_0_0_#eee]">${p.nombre}</td>`;
+                
+                let prevTotal = 0;
+                
+                cols.forEach((col, index) => {
+                    const totalMonth = expYear.filter(e => e.date.startsWith(col.prefix) && e.payment && e.payment.includes(p.match)).reduce((sum, e) => sum + e.amount, 0);
+
+                    let varHTML = '';
+                    if (index > 0 && prevTotal > 0) {
+                        const diff = totalMonth - prevTotal;
+                        const pct = Math.abs((diff / prevTotal) * 100).toFixed(0);
+                        if (diff > 0) varHTML = `<span class="text-[9px] text-red-500 font-bold block leading-tight">↑ ${pct}%</span>`;
+                        else if (diff < 0) varHTML = `<span class="text-[9px] text-green-600 font-bold block leading-tight">↓ ${pct}%</span>`;
+                        else varHTML = `<span class="text-[9px] text-gray-400 block leading-tight">=</span>`;
+                    } else if (index > 0 && totalMonth > 0 && prevTotal === 0) {
+                        varHTML = `<span class="text-[9px] text-red-500 font-bold block leading-tight">Nuevo</span>`;
+                    }
+
+                    const valHTML = totalMonth > 0 ? formatCurrency(totalMonth) : '-';
+
+                    html += `<td class="px-2 py-2 text-right min-w-[75px] align-top">
+                        <div class="text-xs font-semibold ${totalMonth > 0 ? 'text-gray-800' : 'text-gray-400'}">${valHTML}</div>
+                        ${varHTML}
+                    </td>`;
+
+                    prevTotal = totalMonth;
+                });
+                html += `</tr>`;
+                tbody.innerHTML += html;
+            });
+
+            // --- NUEVA FILA DE TOTALES POR MES ---
+            let totalRowHTML = `<tr class="bg-gray-100 border-t-2 border-gray-200">
+                <td class="px-2 py-2 font-bold text-gray-800 text-xs sticky left-0 bg-gray-100 z-10 shadow-[1px_0_0_0_#eee]">TOTAL</td>`;
+            
+            let prevTotalGral = 0;
+            
+            cols.forEach((col, index) => {
+                // Sumamos todo el gasto del mes sin importar quién pagó
+                const totalMonthGral = expYear.filter(e => e.date.startsWith(col.prefix)).reduce((sum, e) => sum + e.amount, 0);
+
+                let varHTML = '';
+                if (index > 0 && prevTotalGral > 0) {
+                    const diff = totalMonthGral - prevTotalGral;
+                    const pct = Math.abs((diff / prevTotalGral) * 100).toFixed(0);
+                    if (diff > 0) varHTML = `<span class="text-[9px] text-red-500 font-bold block leading-tight">↑ ${pct}%</span>`;
+                    else if (diff < 0) varHTML = `<span class="text-[9px] text-green-600 font-bold block leading-tight">↓ ${pct}%</span>`;
+                    else varHTML = `<span class="text-[9px] text-gray-400 block leading-tight">=</span>`;
+                } else if (index > 0 && totalMonthGral > 0 && prevTotalGral === 0) {
+                    varHTML = `<span class="text-[9px] text-red-500 font-bold block leading-tight">Nuevo</span>`;
+                }
+
+                const valHTML = totalMonthGral > 0 ? formatCurrency(totalMonthGral) : '-';
+
+                totalRowHTML += `<td class="px-2 py-2 text-right min-w-[75px] align-top">
+                    <div class="text-xs font-bold ${totalMonthGral > 0 ? 'text-gray-900' : 'text-gray-400'}">${valHTML}</div>
+                    ${varHTML}
+                </td>`;
+
+                prevTotalGral = totalMonthGral;
+            });
+            totalRowHTML += `</tr>`;
+            tbody.innerHTML += totalRowHTML;
         }
 
         window.onload = initApp;
