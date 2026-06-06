@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #fef2f2; }
         ::-webkit-scrollbar-thumb { background: #fca5a5; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
@@ -135,7 +135,15 @@
                     </form>
 
                     <div class="mt-6">
-                        <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">Gastos del Mes</h3>
+                        <div class="flex justify-between items-center mb-2 gap-2">
+                            <h3 class="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">Gastos del Mes</h3>
+                            <div class="relative w-full max-w-[180px]">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                                    <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                                <input type="text" id="search-expense" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs rounded-lg focus:ring-red-500 focus:border-red-500 block pl-7 p-1.5" placeholder="Buscar gasto...">
+                            </div>
+                        </div>
                         <ul id="expense-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></ul>
                     </div>
                 </section>
@@ -177,30 +185,27 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 flex flex-col items-center">
-                    <h3 class="text-sm font-bold text-gray-700 mb-4 w-full border-b pb-2">Composición de Gastos</h3>
+            <div class="grid grid-cols-1 gap-6">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 flex flex-col items-center w-full max-w-md mx-auto">
+                    <h3 class="text-sm font-bold text-gray-700 mb-4 w-full border-b pb-2 text-center">Composición de Gastos (Mes Actual)</h3>
                     <div class="w-full max-w-[250px] aspect-square relative">
                         <canvas id="gastosChart"></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
-                    <h3 class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Variación vs. Mes Anterior</h3>
-                    <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 w-full overflow-hidden">
+                    <h3 id="evolucion-anual-title" class="text-sm font-bold text-gray-700 mb-4 border-b pb-2">Evolución Anual</h3>
+                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto relative w-full border border-gray-100 rounded-lg">
                         <table class="w-full text-sm text-left text-gray-500">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
-                                <tr>
-                                    <th class="px-2 py-2 rounded-l-lg">Detalle</th>
-                                    <th class="px-2 py-2">Este Mes</th>
-                                    <th class="px-2 py-2 text-right rounded-r-lg">Variación</th>
-                                </tr>
+                            <thead id="evolucion-thead" class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-20 shadow-sm">
+                                <!-- Generado por JS -->
                             </thead>
                             <tbody id="comparison-table">
-                                </tbody>
+                                <!-- Generado por JS -->
+                            </tbody>
                         </table>
                     </div>
-                    <p class="text-[10px] text-gray-400 mt-3 text-center">* En verde ahorraste, en rojo gastaste más.</p>
+                    <p class="text-[10px] text-gray-400 mt-3 text-center">* En verde ahorraste, en rojo gastaste más respecto al mes anterior.</p>
                 </div>
             </div>
 
@@ -277,7 +282,7 @@
             "Gastos fijos": [
                 "Crédito hipotecario", "Colegio", "Expensas", "Sueldo Empleada", 
                 "Luz", "Agua", "Gas", "CISI", "Seguros", "Patente", "Jardinero",
-                "Suscripciones (Disney/Netflix/Google, Microsoft)", "Crédito Auto PSA", "Sueldo empleada"
+                "Suscripciones (Disney/Netflix/Google, Microsoft)", "Crédito Auto PSA"
             ],
             "Gastos variables": [
                 "Super/almacén", "Verdulería/carnicería", "Salidas con amigos/flia", 
@@ -376,8 +381,9 @@
             }
             window.updateSubcategories();
 
-            // Escuchar cambios de mes global
+            // Escuchar cambios de mes global y buscador
             monthInput.addEventListener('change', refreshAllViews);
+            document.getElementById('search-expense').addEventListener('input', renderRegistroListas);
 
             refreshAllViews();
         }
@@ -385,14 +391,11 @@
         // ==========================================
         // LÓGICA DE INTERFAZ Y NAVEGACIÓN
         // ==========================================
-        // Exponemos las funciones al objeto window porque al usar type="module" el scope es privado
         window.switchTab = function(tabId) {
-            // Ocultar todos
             ['registro', 'checklist', 'evolucion', 'comparativa'].forEach(id => {
                 document.getElementById(`view-${id}`).classList.add('hidden');
                 document.getElementById(`tab-${id}`).className = "flex-1 py-3 text-sm text-center transition-colors tab-inactive cursor-pointer px-1";
             });
-            // Mostrar activo
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).className = "flex-1 py-3 text-sm text-center transition-colors tab-active cursor-pointer px-1";
             
@@ -423,16 +426,24 @@
         // PESTAÑA: REGISTRO
         // ==========================================
         function renderSaldos() {
+            const activeMonth = monthInput.value;
             let inPitu = 0, inJavi = 0;
+            
+            // Solo sumamos ingresos de este mes
             appData.incomes.forEach(i => {
-                if(i.account === 'Cuenta Pitu') inPitu += i.amount;
-                if(i.account === 'Cuenta Javi') inJavi += i.amount;
+                if (i.date.startsWith(activeMonth)) {
+                    if(i.account === 'Cuenta Pitu') inPitu += i.amount;
+                    if(i.account === 'Cuenta Javi') inJavi += i.amount;
+                }
             });
 
+            // Solo restamos gastos de este mes
             let outPitu = 0, outJavi = 0;
             appData.expenses.forEach(e => {
-                if(e.payment === 'Cuenta Pitu') outPitu += e.amount;
-                if(e.payment === 'Cuenta Javi') outJavi += e.amount;
+                if (e.date.startsWith(activeMonth)) {
+                    if(e.payment === 'Cuenta Pitu') outPitu += e.amount;
+                    if(e.payment === 'Cuenta Javi') outJavi += e.amount;
+                }
             });
 
             const saldoPitu = inPitu - outPitu;
@@ -471,8 +482,7 @@
             const amount = parseFloat(document.getElementById('inc-amount').value);
             const date = document.getElementById('inc-date').value;
 
-            // Restablecemos las rutas a su origen ("finanzas") y sumamos la marca de tiempo (createdAt)
-            await addDoc(collection(db, 'finanzas', appId, 'incomes'), { account, amount, date, createdAt: Date.now() });
+            await addDoc(collection(db, 'finanzas', appId, 'incomes'), { account, amount, date });
             
             document.getElementById('income-form').reset();
             document.getElementById('inc-date').value = date;
@@ -491,8 +501,7 @@
             const date = document.getElementById('exp-date').value;
             const desc = document.getElementById('exp-desc').value;
 
-            // Restablecemos las rutas a su origen ("finanzas") y sumamos la marca de tiempo (createdAt)
-            await addDoc(collection(db, 'finanzas', appId, 'expenses'), { category, subcategory, payment, amount, date, desc, createdAt: Date.now() });
+            await addDoc(collection(db, 'finanzas', appId, 'expenses'), { category, subcategory, payment, amount, date, desc });
             
             document.getElementById('expense-form').reset();
             window.updateSubcategories();
@@ -500,17 +509,25 @@
             showToast('Gasto guardado en la nube');
         });
 
-        // Renderizar listas (Filtradas por mes actual)
+        // Renderizar listas (Filtradas por mes actual y buscador)
         function renderRegistroListas() {
             const activeMonth = monthInput.value;
+            const searchInput = document.getElementById('search-expense');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
             
-            // Ordenamos por fecha del gasto (de más reciente a más antiguo)
+            // Ordenados por fecha de más reciente a más antiguo
             const monthIncomes = appData.incomes
                 .filter(i => i.date.startsWith(activeMonth))
                 .sort((a, b) => b.date.localeCompare(a.date));
                 
             const monthExpenses = appData.expenses
-                .filter(e => e.date.startsWith(activeMonth))
+                .filter(e => {
+                    if (!e.date.startsWith(activeMonth)) return false;
+                    if (searchTerm === '') return true; 
+                    return (e.subcategory && e.subcategory.toLowerCase().includes(searchTerm)) ||
+                           (e.desc && e.desc.toLowerCase().includes(searchTerm)) ||
+                           (e.payment && e.payment.toLowerCase().includes(searchTerm));
+                })
                 .sort((a, b) => b.date.localeCompare(a.date));
 
             const renderItems = (items, containerId, isIncome) => {
@@ -524,7 +541,6 @@
                     const li = document.createElement('li');
                     li.className = "flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100";
                     
-                    // Formateamos la fecha (DD/MM/YYYY)
                     const [year, month, day] = item.date.split('-');
                     const displayDate = `${day}/${month}/${year}`;
                     
@@ -614,7 +630,6 @@
                 newList = [...list, item];
             }
             
-            // Actualizar en Firestore
             const monthRef = doc(db, 'finanzas', appId, 'checklist', month);
             await setDoc(monthRef, { items: newList });
         }
@@ -625,14 +640,9 @@
         function renderEvolucion() {
             const activeMonth = monthInput.value;
             
-            let [y, m] = activeMonth.split('-');
-            let dateObj = new Date(y, m - 1, 1);
-            dateObj.setMonth(dateObj.getMonth() - 1);
-            const prevMonth = formatMonthInput(dateObj);
-
+            // --- Parte Superior: KPIs y Torta del MES SELECCIONADO ---
             const mInc = appData.incomes.filter(i => i.date.startsWith(activeMonth));
             const mExp = appData.expenses.filter(e => e.date.startsWith(activeMonth));
-            const pExp = appData.expenses.filter(e => e.date.startsWith(prevMonth));
 
             const totalInc = mInc.reduce((acc, curr) => acc + curr.amount, 0);
             const totalExp = mExp.reduce((acc, curr) => acc + curr.amount, 0);
@@ -645,10 +655,8 @@
             const elAhorro = document.getElementById('dash-ahorro');
             elAhorro.innerText = formatCurrency(ahorro);
             elAhorro.className = `text-xl font-bold mt-1 ${ahorro >= 0 ? 'text-blue-600' : 'text-red-500'}`;
-            
             document.getElementById('dash-tasa-ahorro').innerText = `${tasaAhorro}%`;
 
-            // Gráfico: Solo Categorías Principales
             const catTotales = {"Gastos fijos":0, "Gastos variables":0};
             mExp.forEach(e => {
                 if(catTotales[e.category] !== undefined) {
@@ -657,9 +665,7 @@
             });
 
             if(chartInstance) { chartInstance.destroy(); }
-            
             const ctx = document.getElementById('gastosChart').getContext('2d');
-            
             if(totalExp === 0) {
                 chartInstance = new Chart(ctx, {
                     type: 'doughnut',
@@ -687,90 +693,95 @@
                 });
             }
 
-            // Comparativa: Categorías y Subcategorías
+            // --- EVOLUCIÓN HISTÓRICA ANUAL ---
+            const year = activeMonth.split('-')[0];
+            const monthNum = parseInt(activeMonth.split('-')[1], 10);
+            const monthsNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+            document.getElementById('evolucion-anual-title').innerText = `Evolución Anual ${year}`;
+
+            // Construir columnas hasta el mes que se eligió
+            const cols = [];
+            for(let i = 1; i <= monthNum; i++) {
+                let mStr = i.toString().padStart(2, '0');
+                cols.push({ label: monthsNames[i-1], prefix: `${year}-${mStr}` });
+            }
+
+            // Thead Dinámico (Fijamos la primera columna)
+            let theadHTML = `<tr><th class="px-2 py-2 rounded-tl-lg sticky left-0 bg-gray-50 z-30 shadow-[1px_0_0_0_#eee]">Detalle</th>`;
+            cols.forEach(c => {
+                theadHTML += `<th class="px-2 py-2 text-right min-w-[75px]">${c.label}</th>`;
+            });
+            theadHTML += `</tr>`;
+            document.getElementById('evolucion-thead').innerHTML = theadHTML;
+
+            // Tbody
             const tbody = document.getElementById('comparison-table');
             tbody.innerHTML = '';
 
             const categoriasPrincipales = ["Gastos fijos", "Gastos variables"];
 
             categoriasPrincipales.forEach(cat => {
-                // Filtrar gastos por categoría para el mes actual y anterior
-                const expActCat = mExp.filter(e => e.category === cat);
-                const expPrevCat = pExp.filter(e => e.category === cat);
+                // Filtramos todos los gastos de esa categoría en el año hasta el mes elegido
+                const expCatYear = appData.expenses.filter(e => e.category === cat && e.date.startsWith(year) && parseInt(e.date.split('-')[1], 10) <= monthNum);
 
-                const totalActCat = expActCat.reduce((sum, e) => sum + e.amount, 0);
-                const totalPrevCat = expPrevCat.reduce((sum, e) => sum + e.amount, 0);
-                
-                // Mostrar Fila de Categoría Principal SIEMPRE que haya datos en este mes o el anterior
-                if (totalActCat > 0 || totalPrevCat > 0) {
-                     const rowHTML = generarFilaComparacion(cat, totalActCat, totalPrevCat, true);
-                     tbody.innerHTML += rowHTML;
+                if(expCatYear.length > 0) {
+                     // Renglón de la Categoría principal
+                     tbody.innerHTML += generarFilaHistorica(cat, expCatYear, cols, true);
 
-                     // Agrupar por subcategorías
-                     const subCatTotalesAct = {};
-                     const subCatTotalesPrev = {};
-
+                     // Renglones de Subcategorías
                      CATEGORIAS_ESTRUCTURA[cat].forEach(sub => {
-                         subCatTotalesAct[sub] = 0;
-                         subCatTotalesPrev[sub] = 0;
-                     });
-
-                     expActCat.forEach(e => { if(subCatTotalesAct[e.subcategory] !== undefined) subCatTotalesAct[e.subcategory] += e.amount; });
-                     expPrevCat.forEach(e => { if(subCatTotalesPrev[e.subcategory] !== undefined) subCatTotalesPrev[e.subcategory] += e.amount; });
-
-                     // Mostrar Filas de Subcategorías
-                     CATEGORIAS_ESTRUCTURA[cat].forEach(sub => {
-                         const actSub = subCatTotalesAct[sub];
-                         const prevSub = subCatTotalesPrev[sub];
-
-                         // Solo mostrar si hay gastos en este mes o en el anterior
-                         if (actSub > 0 || prevSub > 0) {
-                             tbody.innerHTML += generarFilaComparacion(sub, actSub, prevSub, false);
+                         const expSubYear = expCatYear.filter(e => e.subcategory === sub);
+                         if(expSubYear.length > 0) {
+                             tbody.innerHTML += generarFilaHistorica(sub, expSubYear, cols, false);
                          }
                      });
                 }
             });
         }
 
-        // Función auxiliar para generar las filas de la tabla comparativa
-        function generarFilaComparacion(nombre, act, prev, esCategoriaPrincipal) {
-            const diff = act - prev;
-            let percentText = "-";
-            let colorClass = "text-gray-500";
-            let arrow = "";
-
-            if(prev > 0) {
-                const pct = Math.abs((diff / prev) * 100).toFixed(1);
-                if(diff > 0) {
-                    percentText = `+${pct}%`;
-                    colorClass = "text-red-600";
-                    arrow = "↑";
-                } else if (diff < 0) {
-                    percentText = `-${pct}%`;
-                    colorClass = "text-green-600";
-                    arrow = "↓";
-                } else {
-                    percentText = "0%";
-                }
-            } else if (act > 0 && prev === 0) {
-                percentText = "Nuevo";
-                colorClass = "text-red-600";
-            }
-
+        // Función que construye cada fila de la tabla evolutiva
+        function generarFilaHistorica(nombre, expenses, cols, esCategoriaPrincipal) {
             const bgColor = esCategoriaPrincipal ? 'bg-gray-100' : 'bg-white';
             const paddingLeft = esCategoriaPrincipal ? 'px-2' : 'pl-6 pr-2';
             const fontWeight = esCategoriaPrincipal ? 'font-bold text-gray-800' : 'font-normal text-gray-600';
             const icon = esCategoriaPrincipal ? '▼ ' : '• ';
 
-            return `
-                <tr class="${bgColor} border-b">
-                    <td class="${paddingLeft} py-2 ${fontWeight} text-xs truncate max-w-[120px]" title="${nombre}">${icon}${nombre}</td>
-                    <td class="px-2 py-2 font-semibold text-xs">${formatCurrency(act)}</td>
-                    <td class="px-2 py-2 text-right font-bold text-xs ${colorClass}">
-                        ${arrow} ${percentText}
-                    </td>
-                </tr>
-            `;
+            let html = `<tr class="${bgColor} border-b hover:bg-gray-50 transition-colors">
+                <td class="${paddingLeft} py-2 ${fontWeight} text-xs truncate max-w-[130px] sticky left-0 ${bgColor} z-10 shadow-[1px_0_0_0_#eee]" title="${nombre}">${icon}${nombre}</td>`;
+
+            let prevTotal = 0;
+
+            cols.forEach((col, index) => {
+                const totalMonth = expenses.filter(e => e.date.startsWith(col.prefix)).reduce((sum, e) => sum + e.amount, 0);
+
+                let varHTML = '';
+                if (index > 0 && prevTotal > 0) {
+                    const diff = totalMonth - prevTotal;
+                    const pct = Math.abs((diff / prevTotal) * 100).toFixed(0);
+                    if (diff > 0) {
+                        varHTML = `<span class="text-[9px] text-red-500 font-bold block leading-tight">↑ ${pct}%</span>`;
+                    } else if (diff < 0) {
+                        varHTML = `<span class="text-[9px] text-green-600 font-bold block leading-tight">↓ ${pct}%</span>`;
+                    } else {
+                        varHTML = `<span class="text-[9px] text-gray-400 block leading-tight">=</span>`;
+                    }
+                } else if (index > 0 && totalMonth > 0 && prevTotal === 0) {
+                    varHTML = `<span class="text-[9px] text-red-500 font-bold block leading-tight">Nuevo</span>`;
+                }
+
+                const valHTML = totalMonth > 0 ? formatCurrency(totalMonth) : '-';
+
+                html += `<td class="px-2 py-2 text-right min-w-[75px] align-top">
+                    <div class="text-xs font-semibold ${totalMonth > 0 ? 'text-gray-800' : 'text-gray-400'}">${valHTML}</div>
+                    ${varHTML}
+                </td>`;
+
+                prevTotal = totalMonth;
+            });
+
+            html += `</tr>`;
+            return html;
         }
 
         // ==========================================
